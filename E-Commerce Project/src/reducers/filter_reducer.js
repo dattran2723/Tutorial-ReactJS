@@ -21,6 +21,7 @@ const filter_reducer = (state, action) => {
         filters: {
           ...state.filters,
           max_price: maxPrice,
+          price: maxPrice,
         },
       }
     case SET_GRIDVIEW:
@@ -64,7 +65,54 @@ const filter_reducer = (state, action) => {
       return { ...state, filters: { ...state.filters, [name]: value } }
 
     case FILTER_PRODUCTS:
-      return { ...state }
+      const { all_products } = state
+      const { text, category, company, color, price, shipping } = state.filters
+      let tempFilterProducts = [...all_products]
+
+      //filtering
+      if (text) {
+        tempFilterProducts = tempFilterProducts.filter((p) => {
+          return p.name.toLowerCase().startsWith(text)
+        })
+      }
+      if (category !== 'all') {
+        tempFilterProducts = tempFilterProducts.filter(
+          (p) => p.category === category
+        )
+      }
+      if (company !== 'all') {
+        tempFilterProducts = tempFilterProducts.filter(
+          (p) => p.company === company
+        )
+      }
+      if (color !== 'all') {
+        tempFilterProducts = tempFilterProducts.filter((p) => {
+          return p.colors.find((c) => c === color)
+        })
+      }
+      tempFilterProducts = tempFilterProducts.filter((p) => p.price <= price)
+      if (shipping) {
+        tempFilterProducts = tempFilterProducts.filter(
+          (p) => p.shipping === true
+        )
+      }
+      return { ...state, filtered_products: tempFilterProducts }
+
+    case CLEAR_FILTERS:
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          text: '',
+          company: 'all',
+          category: 'all',
+          color: 'all',
+          price: state.filters.max_price,
+          shipping: false,
+        },
+      }
+    default:
+      break
   }
   throw new Error(`No Matching "${action.type}" - action type`)
 }
